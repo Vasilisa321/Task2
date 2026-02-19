@@ -9,9 +9,8 @@ Vue.component('card-item', {
             </div>
             
             <div v-if="blocked" class="blocked-indicator">
-                🔒 Колонка заблокирована
+                Колонка заблокирована (2 колонка заполнена)
             </div>
-            
             
             <div class="progress-bar" v-if="card.items.length">
                 <div class="progress-fill" :style="{ width: progress + '%' }"></div>
@@ -31,9 +30,9 @@ Vue.component('card-item', {
             </div>
             
             <div v-if="card.column === 3 && card.completedAt" class="completed-date">
-                ✅ Завершено: {{ card.completedAt }}
+                Завершено: {{ card.completedAt }}
             </div>
-            
+           
             <div class="add-item-form" v-if="card.items.length < 5 && card.column !== 3">
                 <input 
                     type="text" 
@@ -179,7 +178,7 @@ new Vue({
                 title: this.newCardTitle,
                 author: this.newCardAuthor,
                 column: 1,
-                items: items, // ← добавляем пункты
+                items: items,
                 createdAt: this.formatDate(new Date())
             });
 
@@ -195,19 +194,37 @@ new Vue({
         },
 
         checkMoveConditions() {
+            if (this.isColumn2Full) {
+                const hasCardsReadyToMove = this.column1Cards.some(
+                    card => this.calculateProgress(card) > 50
+                );
+
+                if (hasCardsReadyToMove) {
+                    this.column1Blocked = true;
+                } else {
+                    this.column1Blocked = false;
+                }
+            } else {
+                this.column1Blocked = false;
+            }
+
             let changes = false;
 
-            // Сначала проверяем карточки для перемещения
             const updatedCards = this.cards.map(card => {
                 const progress = this.calculateProgress(card);
 
                 if (card.column === 1 && progress > 50 && !this.column1Blocked) {
-                    changes = true;
-                    return { ...card, column: 2 };
+                    const currentColumn2Count = this.cards.filter(c => c.column === 2).length;
+                    if (currentColumn2Count < 5) {
+                        changes = true;
+                        console.log('Карточка перемещена из 1 во 2 колонку');
+                        return { ...card, column: 2 };
+                    }
                 }
 
                 if (card.column === 2 && progress === 100) {
                     changes = true;
+                    console.log('Карточка перемещена из 2 в 3 колонку');
                     return {
                         ...card,
                         column: 3,
@@ -220,22 +237,6 @@ new Vue({
 
             if (changes) {
                 this.cards = updatedCards;
-            }
-
-            if (this.isColumn2Full) {
-                const hasCardsReadyToMove = this.column1Cards.some(
-                    card => this.calculateProgress(card) > 50
-                );
-
-                if (hasCardsReadyToMove && !this.column1Blocked) {
-                    this.column1Blocked = true;
-                    console.log('🔒 Первая колонка заблокирована: вторая колонка заполнена');
-                }
-            } else {
-                if (this.column1Blocked) {
-                    this.column1Blocked = false;
-                    console.log('🔓 Первая колонка разблокирована');
-                }
             }
         },
 
