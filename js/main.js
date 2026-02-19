@@ -108,6 +108,8 @@ new Vue({
     data: {
         newCardTitle: '',
         newCardAuthor: '',
+        newItemText: '',
+        tempItems: [],
         cards: [],
         column1Blocked: false
     },
@@ -157,6 +159,29 @@ new Vue({
             });
         },
 
+        addTempItem() {
+            if (!this.newItemText.trim()) {
+                alert('Введите текст пункта!');
+                return;
+            }
+            if (this.tempItems.length >= 5) {
+                alert('Максимум 5 пунктов!');
+                return;
+            }
+
+            this.tempItems.push({
+                id: Date.now() + Math.random(),
+                text: this.newItemText,
+                completed: false
+            });
+
+            this.newItemText = '';
+        },
+
+        removeTempItem(itemId) {
+            this.tempItems = this.tempItems.filter(item => item.id !== itemId);
+        },
+
         createCard() {
             if (!this.newCardTitle.trim() || !this.newCardAuthor.trim()) {
                 alert('Заполните заголовок и укажите ваше имя!');
@@ -164,13 +189,13 @@ new Vue({
             }
             if (!this.canCreateCard) return;
 
-            const items = [];
-            for (let i = 1; i <= 3; i++) {
-                items.push({
-                    id: Date.now() + i,
-                    text: `Пункт ${i}`,
-                    completed: false
-                });
+            if (this.tempItems.length < 3) {
+                alert('Добавьте минимум 3 пункта!');
+                return;
+            }
+            if (this.tempItems.length > 5) {
+                alert('Максимум 5 пунктов!');
+                return;
             }
 
             this.cards.push({
@@ -178,12 +203,14 @@ new Vue({
                 title: this.newCardTitle,
                 author: this.newCardAuthor,
                 column: 1,
-                items: items,
+                items: [...this.tempItems],
                 createdAt: this.formatDate(new Date())
             });
 
             this.newCardTitle = '';
             this.newCardAuthor = '';
+            this.tempItems = [];
+            this.newItemText = '';
         },
 
         updateCard(updatedCard) {

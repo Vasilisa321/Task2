@@ -13,32 +13,79 @@
 
     <div class="add-card-form">
         <h2>Создать новую карточку</h2>
+
         <div class="form-group">
             <input
                     type="text"
                     v-model="newCardTitle"
                     placeholder="Введите заголовок карточки"
-                    @keyup.enter="createCard"
             >
         </div>
+
         <div class="form-group">
             <input
                     type="text"
                     v-model="newCardAuthor"
                     placeholder="Ваше имя"
-                    @keyup.enter="createCard"
             >
         </div>
-        <button @click="createCard" :disabled="!canCreateCard">
-            Создать карточку
+
+        <div class="form-group items-input-group">
+            <label>Добавьте пункты (от 3 до 5):</label>
+            <div class="add-item-row">
+                <input
+                        type="text"
+                        v-model="newItemText"
+                        placeholder="Введите пункт списка"
+                        @keyup.enter="addTempItem"
+                >
+                <button
+                        type="button"
+                        @click="addTempItem"
+                        :disabled="tempItems.length >= 5"
+                        class="add-item-btn"
+                >
+                    ➕ Добавить
+                </button>
+            </div>
+
+            <div v-if="tempItems.length > 0" class="temp-items-list">
+                <div v-for="(item, index) in tempItems" :key="item.id" class="temp-item">
+                    <span>{{ index + 1 }}. {{ item.text }}</span>
+                    <button @click="removeTempItem(item.id)" class="remove-item">❌</button>
+                </div>
+            </div>
+
+            <div class="items-hint">
+                <span v-if="tempItems.length < 3" class="warning">
+                    Нужно еще {{ 3 - tempItems.length }} пункт(а)
+                </span>
+                <span v-else-if="tempItems.length >= 3 && tempItems.length <= 5" class="success">
+                    Минимум набран ({{ tempItems.length }}/5)
+                </span>
+                <span v-if="tempItems.length >= 5" class="warning">
+                    Достигнут максимум (5)
+                </span>
+            </div>
+        </div>
+
+        <button
+                @click="createCard"
+                :disabled="!canCreateCard || tempItems.length < 3 || tempItems.length > 5"
+                class="create-btn"
+        >
+            Создать карточку ({{ tempItems.length }}/5 пунктов)
         </button>
+
         <p class="form-hint" v-if="!canCreateCard">
             В первой колонке нет места (максимум 3 карточки)
+        </p>
+        <p class="form-hint" v-else-if="tempItems.length < 3">
+            Добавьте минимум 3 пункта
         </p>
     </div>
 
     <div class="columns">
-
         <div class="column column-1">
             <div class="column-header">
                 <h2>Новое</h2>
@@ -60,7 +107,7 @@
 
         <div class="column column-2">
             <div class="column-header">
-                <h2>⚡ В процессе</h2>
+                <h2>В процессе</h2>
                 <span class="column-count">{{ column2Cards.length }}/5</span>
             </div>
             <div class="cards-container">
