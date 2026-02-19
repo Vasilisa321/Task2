@@ -5,7 +5,7 @@ Vue.component('card-item', {
             <h3>{{ card.title }}</h3>
             
             <div class="card-author">
-                ✍️ {{ card.author }}
+                {{ card.author }}
             </div>
             
             <div v-if="blocked" class="blocked-indicator">
@@ -146,8 +146,7 @@ new Vue({
                 month: 'long',
                 day: 'numeric',
                 hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit'
+                minute: '2-digit'
             });
         },
 
