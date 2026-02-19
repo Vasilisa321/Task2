@@ -45,14 +45,14 @@
                         :disabled="tempItems.length >= 5"
                         class="add-item-btn"
                 >
-                    ➕ Добавить
+                    Добавить
                 </button>
             </div>
 
             <div v-if="tempItems.length > 0" class="temp-items-list">
                 <div v-for="(item, index) in tempItems" :key="item.id" class="temp-item">
                     <span>{{ index + 1 }}. {{ item.text }}</span>
-                    <button @click="removeTempItem(item.id)" class="remove-item">❌</button>
+                    <button @click="removeTempItem(item.id)" class="remove-item">Удалить</button>
                 </div>
             </div>
 
@@ -68,7 +68,6 @@
                 </span>
             </div>
         </div>
-
         <button
                 @click="createCard"
                 :disabled="!canCreateCard || tempItems.length < 3 || tempItems.length > 5"

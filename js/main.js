@@ -12,7 +12,7 @@ Vue.component('card-item', {
             </div>
             
             <div v-if="blocked" class="blocked-indicator">
-                Колонка заблокирована (2 колонка заполнена)
+                Колонка заблокирована (Вторая колонка заполнена)
             </div>
             
             <div class="progress-bar" v-if="card.items.length">
