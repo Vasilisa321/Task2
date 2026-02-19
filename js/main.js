@@ -1,22 +1,23 @@
-// Компонент карточки
 Vue.component('card-item', {
     props: ['card', 'column1Blocked'],
     template: `
         <div class="card" :class="{ 'blocked-card': blocked }">
             <h3>{{ card.title }}</h3>
             
-            <!-- Индикатор блокировки -->
+            <div class="card-author">
+                ✍️ {{ card.author }}
+            </div>
+            
             <div v-if="blocked" class="blocked-indicator">
                 🔒 Колонка заблокирована
             </div>
             
-            <!-- Прогресс-бар -->
+            
             <div class="progress-bar" v-if="card.items.length">
                 <div class="progress-fill" :style="{ width: progress + '%' }"></div>
                 <span class="progress-text">{{ progress }}%</span>
             </div>
             
-            <!-- Пункты списка -->
             <div class="card-items">
                 <div v-for="item in card.items" :key="item.id" class="card-item">
                     <input 
@@ -29,12 +30,10 @@ Vue.component('card-item', {
                 </div>
             </div>
             
-            <!-- Дата завершения (для 3 колонки) -->
             <div v-if="card.column === 3 && card.completedAt" class="completed-date">
                 ✅ Завершено: {{ card.completedAt }}
             </div>
             
-            <!-- Форма добавления пункта -->
             <div class="add-item-form" v-if="card.items.length < 5 && card.column !== 3">
                 <input 
                     type="text" 
@@ -46,9 +45,12 @@ Vue.component('card-item', {
                 <button @click="addItem" :disabled="blocked">+</button>
             </div>
             
-            <!-- Информация о лимите -->
+            <div class="card-footer">
+                <small>Создано: {{ card.createdAt }}</small>
+            </div>
+            
             <div v-if="card.items.length >= 5" class="item-limit">
-                ⚠️ Максимум пунктов (5)
+                Максимум пунктов (5)
             </div>
         </div>
     `,
@@ -86,7 +88,6 @@ Vue.component('card-item', {
             this.$emit('update-card', updatedCard);
             this.newItemText = '';
         },
-
         toggleItem(itemId) {
             if (this.blocked) return;
 
@@ -107,6 +108,7 @@ new Vue({
     el: '#app',
     data: {
         newCardTitle: '',
+        newCardAuthor: '',
         cards: [],
         column1Blocked: false
     },
@@ -137,8 +139,31 @@ new Vue({
         }
     },
     methods: {
+        formatDateTime(date) {
+            return date.toLocaleDateString('ru-RU', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+        },
+
+        formatDate(date) {
+            return date.toLocaleDateString('ru-RU', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        },
+
         createCard() {
-            if (!this.newCardTitle.trim() || !this.canCreateCard) return;
+            if (!this.newCardTitle.trim() || !this.newCardAuthor.trim()) {
+                alert('Заполните заголовок и укажите ваше имя!');
+                return;
+            }
+            if (!this.canCreateCard) return;
 
             const items = [];
             for (let i = 1; i <= 3; i++) {
@@ -152,12 +177,14 @@ new Vue({
             this.cards.push({
                 id: Date.now(),
                 title: this.newCardTitle,
+                author: this.newCardAuthor,
                 column: 1,
-                items: items,
-                createdAt: new Date().toLocaleString()
+                items: items, // ← добавляем пункты
+                createdAt: this.formatDate(new Date())
             });
 
             this.newCardTitle = '';
+            this.newCardAuthor = '';
         },
 
         updateCard(updatedCard) {
@@ -170,22 +197,21 @@ new Vue({
         checkMoveConditions() {
             let changes = false;
 
+            // Сначала проверяем карточки для перемещения
             const updatedCards = this.cards.map(card => {
                 const progress = this.calculateProgress(card);
 
-                // Из 1 во 2 (при >50%)
                 if (card.column === 1 && progress > 50 && !this.column1Blocked) {
                     changes = true;
                     return { ...card, column: 2 };
                 }
 
-                // Из 2 в 3 (при 100%)
                 if (card.column === 2 && progress === 100) {
                     changes = true;
                     return {
                         ...card,
                         column: 3,
-                        completedAt: new Date().toLocaleString()
+                        completedAt: this.formatDateTime(new Date())
                     };
                 }
 
@@ -196,14 +222,20 @@ new Vue({
                 this.cards = updatedCards;
             }
 
-            // Проверка блокировки
             if (this.isColumn2Full) {
                 const hasCardsReadyToMove = this.column1Cards.some(
                     card => this.calculateProgress(card) > 50
                 );
-                this.column1Blocked = hasCardsReadyToMove;
+
+                if (hasCardsReadyToMove && !this.column1Blocked) {
+                    this.column1Blocked = true;
+                    console.log('🔒 Первая колонка заблокирована: вторая колонка заполнена');
+                }
             } else {
-                this.column1Blocked = false;
+                if (this.column1Blocked) {
+                    this.column1Blocked = false;
+                    console.log('🔓 Первая колонка разблокирована');
+                }
             }
         },
 

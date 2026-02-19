@@ -1,11 +1,13 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Note App</title>
-    <link rel="stylesheet" href="css/style.css">
+    <script src="js/vue.min.js"></script>
+    <link rel="stylesheet" href="css/styles.css">
 </head>
+<body>
 <div id="app">
     <h1>Менеджер заметок</h1>
 
@@ -18,30 +20,81 @@
                     placeholder="Введите заголовок карточки"
                     @keyup.enter="createCard"
             >
-            <button @click="createCard" :disabled="!canCreateCard">
-                Создать карточку
-            </button>
         </div>
+        <div class="form-group">
+            <input
+                    type="text"
+                    v-model="newCardAuthor"
+                    placeholder="Ваше имя"
+                    @keyup.enter="createCard"
+            >
+        </div>
+        <button @click="createCard" :disabled="!canCreateCard">
+            Создать карточку
+        </button>
         <p class="form-hint" v-if="!canCreateCard">
             В первой колонке нет места (максимум 3 карточки)
         </p>
     </div>
 
-
     <div class="columns">
-        <div class="preview-cards">
-            <div v-for="card in cards" :key="card.id" class="card">
-                <h3>{{ card.title }}</h3>
-                <div class="card-items">
-                    <div v-for="item in card.items" :key="item.id" class="card-item">
-                        <input type="checkbox" v-model="item.completed">
-                        <span :class="{ completed: item.completed }">{{ item.text }}</span>
-                    </div>
+
+        <div class="column column-1">
+            <div class="column-header">
+                <h2>В работе</h2>
+                <span class="column-count">{{ column1Cards.length }}/3</span>
+            </div>
+            <div class="cards-container">
+                <card-item
+                        v-for="card in column1Cards"
+                        :key="card.id"
+                        :card="card"
+                        :column1-blocked="column1Blocked"
+                        @update-card="updateCard"
+                ></card-item>
+                <div v-if="!column1Cards.length" class="empty-column">
+                    Нет карточек
                 </div>
-                <div class="card-footer">
-                    <small>Создано: {{ card.createdAt }}</small>
+            </div>
+        </div>
+
+        <div class="column column-2">
+            <div class="column-header">
+                <h2>⚡ В процессе</h2>
+                <span class="column-count">{{ column2Cards.length }}/5</span>
+            </div>
+            <div class="cards-container">
+                <card-item
+                        v-for="card in column2Cards"
+                        :key="card.id"
+                        :card="card"
+                        @update-card="updateCard"
+                ></card-item>
+                <div v-if="!column2Cards.length" class="empty-column">
+                    Нет карточек
+                </div>
+            </div>
+        </div>
+
+        <div class="column column-3">
+            <div class="column-header">
+                <h2>Завершено</h2>
+                <span class="column-count">{{ column3Cards.length }}</span>
+            </div>
+            <div class="cards-container">
+                <card-item
+                        v-for="card in column3Cards"
+                        :key="card.id"
+                        :card="card"
+                        @update-card="updateCard"
+                ></card-item>
+                <div v-if="!column3Cards.length" class="empty-column">
+                    Нет карточек
                 </div>
             </div>
         </div>
     </div>
 </div>
+<script src="js/main.js"></script>
+</body>
+</html>
