@@ -1,21 +1,47 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport"
-        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-    <script defer src="js/main.js"></script>
-  <title>Title</title>
-  <link rel="stylesheet" href="css/styles.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Note App</title>
+    <link rel="stylesheet" href="css/style.css">
 </head>
-<body>
-  <div id="app">
-    <h1>Хранилище заметок</h1>
+<div id="app">
+    <h1>Менеджер заметок</h1>
 
     <div class="add-card-form">
-      <h2>Создать новую карточку</h2>
-
+        <h2>Создать новую карточку</h2>
+        <div class="form-group">
+            <input
+                    type="text"
+                    v-model="newCardTitle"
+                    placeholder="Введите заголовок карточки"
+                    @keyup.enter="createCard"
+            >
+            <button @click="createCard" :disabled="!canCreateCard">
+                Создать карточку
+            </button>
+        </div>
+        <p class="form-hint" v-if="!canCreateCard">
+            В первой колонке нет места (максимум 3 карточки)
+        </p>
     </div>
-  </div>
-</body>
-</html>
+
+
+    <div class="columns">
+        <div class="preview-cards">
+            <div v-for="card in cards" :key="card.id" class="card">
+                <h3>{{ card.title }}</h3>
+                <div class="card-items">
+                    <div v-for="item in card.items" :key="item.id" class="card-item">
+                        <input type="checkbox" v-model="item.completed">
+                        <span :class="{ completed: item.completed }">{{ item.text }}</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <small>Создано: {{ card.createdAt }}</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
