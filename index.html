@@ -98,6 +98,7 @@
                         :card="card"
                         :column1-blocked="column1Blocked"
                         @update-card="updateCard"
+                        @delete-card="deleteCard"
                 ></card-item>
                 <div v-if="!column1Cards.length" class="empty-column">
                     Нет карточек
@@ -116,6 +117,7 @@
                         :key="card.id"
                         :card="card"
                         @update-card="updateCard"
+                        @delete-card="deleteCard"
                 ></card-item>
                 <div v-if="!column2Cards.length" class="empty-column">
                     Нет карточек
@@ -134,6 +136,7 @@
                         :key="card.id"
                         :card="card"
                         @update-card="updateCard"
+                        @delete-card="deleteCard"
                 ></card-item>
                 <div v-if="!column3Cards.length" class="empty-column">
                     Нет карточек

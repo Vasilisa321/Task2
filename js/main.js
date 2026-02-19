@@ -2,7 +2,10 @@ Vue.component('card-item', {
     props: ['card', 'column1Blocked'],
     template: `
         <div class="card" :class="{ 'blocked-card': blocked }">
-            <h3>{{ card.title }}</h3>
+            <div class="card-header">
+                <h3>{{ card.title }}</h3>
+                <button @click="deleteCard" class="delete-card-btn" title="Удалить карточку">×</button>
+            </div>
             
             <div class="card-author">
                 {{ card.author }}
@@ -99,6 +102,11 @@ Vue.component('card-item', {
 
             const updatedCard = { ...this.card, items: updatedItems };
             this.$emit('update-card', updatedCard);
+        },
+        deleteCard() {
+            if (confirm('Удалить карточку?')) {
+                this.$emit('delete-card', this.card.id);
+            }
         }
     }
 });
@@ -217,6 +225,11 @@ new Vue({
             if (index !== -1) {
                 this.$set(this.cards, index, updatedCard);
             }
+        },
+
+        deleteCard(cardId) {
+            this.cards = this.cards.filter(card => card.id !== cardId);
+            this.saveToLocalStorage();
         },
 
         checkMoveConditions() {
