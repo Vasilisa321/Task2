@@ -243,3 +243,156 @@ h1 {
 .delete-card-btn:hover {
     color: #174881;
 }
+
+.card-actions {
+    display: flex;
+    gap: 5px;
+}
+
+.edit-card-btn {
+    background: none;
+    border: none;
+    color: #4a6fa5;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 0 5px;
+    line-height: 1;
+    text-decoration: none;
+}
+
+.edit-card-btn:hover {
+    color: #2c3e50;
+}
+
+.edit-card-btn:disabled {
+    color: #999;
+    cursor: not-allowed;
+}
+
+.card.editing {
+    background: #bdddff;
+    border: 2px solid #4a6fa5;
+}
+
+.edit-title-container,
+.edit-author-container {
+    margin-bottom: 10px;
+}
+
+.edit-title-input,
+.edit-author-input,
+.edit-item-input {
+    width: 100%;
+    padding: 5px;
+    border: 1px solid #999;
+    border-radius: 3px;
+    font-size: 14px;
+}
+
+.edit-item-input {
+    flex: 1;
+    margin: 0 5px;
+}
+
+.card-item.edit-mode {
+    display: flex;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+.remove-edit-item {
+    background: none;
+    border: none;
+    color: #ff4444;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 0 5px;
+}
+
+.remove-edit-item:hover {
+    color: #cc0000;
+}
+
+.add-item-row.edit-mode {
+    display: flex;
+    margin: 10px 0;
+}
+
+.add-item-row.edit-mode input {
+    flex: 1;
+    padding: 5px;
+    border: 1px solid #999;
+    border-radius: 3px 0 0 3px;
+}
+
+.add-item-row.edit-mode button {
+    padding: 5px 10px;
+    background: #4a6fa5;
+    color: white;
+    border: none;
+    border-radius: 0 3px 3px 0;
+    cursor: pointer;
+}
+
+.add-item-row.edit-mode button:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
+
+.items-hint.edit-mode {
+    font-size: 12px;
+    margin: 5px 0;
+    padding: 3px;
+    border-radius: 3px;
+}
+
+.edit-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+    padding-top: 10px;
+    border-top: 1px solid #ddd;
+}
+
+.save-edit-btn,
+.cancel-edit-btn {
+    flex: 1;
+    padding: 8px;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.save-edit-btn {
+    background: #4a6fa5;
+    color: white;
+}
+
+.save-edit-btn:hover:not(:disabled) {
+    background: #2c3e50;
+}
+
+.save-edit-btn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
+
+.cancel-edit-btn {
+    background: #f0f0f0;
+    color: #333;
+}
+
+.cancel-edit-btn:hover {
+    background: #ddd;
+}
+
+.warning {
+    color: #ff4444;
+    font-size: 12px;
+}
+
+.success {
+    color: #4CAF50;
+    font-size: 12px;
+}

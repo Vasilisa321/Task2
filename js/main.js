@@ -1,42 +1,106 @@
 Vue.component('card-item', {
     props: ['card', 'column1Blocked'],
     template: `
-        <div class="card" :class="{ 'blocked-card': blocked }">
+        <div class="card" :class="{ 'blocked-card': blocked, 'editing': isEditing }">
             <div class="card-header">
-                <h3>{{ card.title }}</h3>
-                <button @click="deleteCard" class="delete-card-btn" title="Удалить карточку">×</button>
+                <div v-if="!isEditing" class="card-title-container">
+                    <h3>{{ card.title }}</h3>
+                </div>
+                <div v-else class="edit-title-container">
+                    <input 
+                        type="text" 
+                        v-model="editTitle" 
+                        placeholder="Заголовок"
+                        class="edit-title-input"
+                    >
+                </div>
+                <div class="card-actions">
+                    <button 
+                        v-if="card.column === 1 && !isEditing" 
+                        @click="startEditing" 
+                        class="edit-card-btn" 
+                        title="Редактировать карточку"
+                        :disabled="blocked"
+                    >✎</button>
+                    <button @click="deleteCard" class="delete-card-btn" title="Удалить карточку">×</button>
+                </div>
             </div>
             
-            <div class="card-author">
+            <div v-if="!isEditing" class="card-author">
                 {{ card.author }}
             </div>
+            <div v-else class="edit-author-container">
+                <input 
+                    type="text" 
+                    v-model="editAuthor" 
+                    placeholder="Автор"
+                    class="edit-author-input"
+                >
+            </div>
             
-            <div v-if="blocked" class="blocked-indicator">
+            <div v-if="blocked && !isEditing" class="blocked-indicator">
                 Колонка заблокирована (Вторая колонка заполнена)
             </div>
             
-            <div class="progress-bar" v-if="card.items.length">
+            <div class="progress-bar" v-if="card.items.length && !isEditing">
                 <div class="progress-fill" :style="{ width: progress + '%' }"></div>
                 <span class="progress-text">{{ progress }}%</span>
             </div>
             
             <div class="card-items">
-                <div v-for="item in card.items" :key="item.id" class="card-item">
-                    <input 
-                        type="checkbox" 
-                        :checked="item.completed"
-                        @change="toggleItem(item.id)"
-                        :disabled="blocked"
-                    >
-                    <span :class="{ completed: item.completed }">{{ item.text }}</span>
-                </div>
+                <template v-if="!isEditing">
+                    <div v-for="item in card.items" :key="item.id" class="card-item">
+                        <input 
+                            type="checkbox" 
+                            :checked="item.completed"
+                            @change="toggleItem(item.id)"
+                            :disabled="blocked"
+                        >
+                        <span :class="{ completed: item.completed }">{{ item.text }}</span>
+                    </div>
+                </template>
+                <template v-else>
+                    <div v-for="(item, index) in editItems" :key="item.id" class="card-item edit-mode">
+                        <input 
+                            type="checkbox" 
+                            v-model="item.completed"
+                            :disabled="true"
+                        >
+                        <input 
+                            type="text" 
+                            v-model="item.text" 
+                            class="edit-item-input"
+                            placeholder="Текст пункта"
+                        >
+                        <button @click="removeEditItem(index)" class="remove-edit-item" title="Удалить пункт">×</button>
+                    </div>
+                    
+                    <div v-if="editItems.length < 5" class="add-item-row edit-mode">
+                        <input 
+                            type="text" 
+                            v-model="newEditItem" 
+                            placeholder="Новый пункт"
+                            @keyup.enter="addEditItem"
+                        >
+                        <button @click="addEditItem" :disabled="!newEditItem.trim()">Добавить</button>
+                    </div>
+                    
+                    <div class="items-hint edit-mode" v-if="editItems.length < 3 || editItems.length > 5">
+                        <span v-if="editItems.length < 3" class="warning">
+                            Минимум 3 пункта (еще {{ 3 - editItems.length }})
+                        </span>
+                        <span v-if="editItems.length > 5" class="warning">
+                            Максимум 5 пунктов (превышение на {{ editItems.length - 5 }})
+                        </span>
+                    </div>
+                </template>
             </div>
             
-            <div v-if="card.column === 3 && card.completedAt" class="completed-date">
+            <div v-if="card.column === 3 && card.completedAt && !isEditing" class="completed-date">
                 Завершено: {{ card.completedAt }}
             </div>
            
-            <div class="add-item-form" v-if="card.items.length < 5 && card.column !== 3">
+            <div class="add-item-form" v-if="!isEditing && card.items.length < 5 && card.column !== 3">
                 <input 
                     type="text" 
                     v-model="newItemText" 
@@ -47,18 +111,32 @@ Vue.component('card-item', {
                 <button @click="addItem" :disabled="blocked">+</button>
             </div>
             
-            <div class="card-footer">
+            <div v-if="!isEditing" class="card-footer">
                 <small>Создано: {{ card.createdAt }}</small>
             </div>
             
-            <div v-if="card.items.length >= 5" class="item-limit">
+            <div v-if="!isEditing && card.items.length >= 5" class="item-limit">
                 Максимум пунктов (5)
+            </div>
+            
+            <div v-if="isEditing" class="edit-actions">
+                <button @click="saveEditing" class="save-edit-btn" :disabled="!isValidEdit">
+                    Сохранить изменения
+                </button>
+                <button @click="cancelEditing" class="cancel-edit-btn">
+                    Отмена
+                </button>
             </div>
         </div>
     `,
     data() {
         return {
-            newItemText: ''
+            newItemText: '',
+            isEditing: false,
+            editTitle: '',
+            editAuthor: '',
+            editItems: [],
+            newEditItem: ''
         };
     },
     computed: {
@@ -69,6 +147,11 @@ Vue.component('card-item', {
         },
         blocked() {
             return this.card.column === 1 && this.column1Blocked;
+        },
+        isValidEdit() {
+            if (!this.editTitle.trim() || !this.editAuthor.trim()) return false;
+            if (this.editItems.length < 3 || this.editItems.length > 5) return false;
+            return this.editItems.every(item => item.text.trim());
         }
     },
     methods: {
@@ -107,6 +190,61 @@ Vue.component('card-item', {
             if (confirm('Удалить карточку?')) {
                 this.$emit('delete-card', this.card.id);
             }
+        },
+        startEditing() {
+            if (this.card.column !== 1 || this.blocked) return;
+
+            this.editTitle = this.card.title;
+            this.editAuthor = this.card.author;
+            this.editItems = this.card.items.map(item => ({
+                ...item,
+                id: item.id
+            }));
+            this.isEditing = true;
+        },
+        cancelEditing() {
+            this.isEditing = false;
+            this.editTitle = '';
+            this.editAuthor = '';
+            this.editItems = [];
+            this.newEditItem = '';
+        },
+        addEditItem() {
+            if (!this.newEditItem.trim()) return;
+            if (this.editItems.length >= 5) {
+                alert('Максимум 5 пунктов!');
+                return;
+            }
+
+            this.editItems.push({
+                id: Date.now() + Math.random(),
+                text: this.newEditItem,
+                completed: false
+            });
+
+            this.newEditItem = '';
+        },
+        removeEditItem(index) {
+            this.editItems.splice(index, 1);
+        },
+        saveEditing() {
+            if (!this.isValidEdit) {
+                alert('Проверьте данные: заголовок, автор и от 3 до 5 заполненных пунктов');
+                return;
+            }
+
+            const updatedCard = {
+                ...this.card,
+                title: this.editTitle,
+                author: this.editAuthor,
+                items: this.editItems.map(item => ({
+                    ...item,
+                    completed: item.completed || false
+                }))
+            };
+
+            this.$emit('update-card', updatedCard);
+            this.isEditing = false;
         }
     }
 });
@@ -205,13 +343,14 @@ new Vue({
                 return;
             }
 
+            const now = new Date();
             this.cards.push({
                 id: Date.now(),
                 title: this.newCardTitle,
                 author: this.newCardAuthor,
                 column: 1,
                 items: [...this.tempItems],
-                createdAt: this.formatDate(new Date())
+                createdAt: this.formatDate(now)
             });
 
             this.newCardTitle = '';
